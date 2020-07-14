@@ -41,8 +41,8 @@
 #define SERIAL_TYPE                                                 0       //0==SoftSerial(Arduino_Nano), 1==HardSerial(others)
 #define MAH_CALIBRATION_FACTOR                                      1.0f    //used to calibrate mAh reading.
 #define SPEED_IN_KILOMETERS_PER_HOUR                                        //if commented out defaults to m/s
-//#define IMPERIAL_UNITS                                                    //Altitude in feet, distance to home in miles.
-#define VEHICLE_TYPE                                                0       //0==ArduPlane, 1==ArduCopter, 2==INAVPlane, 3==INAVCopter. Used for flight modes
+#define IMPERIAL_UNITS                                                    //Altitude in feet, distance to home in miles.
+//#define VEHICLE_TYPE                                                0       //0==ArduPlane, 1==ArduCopter, 2==INAVPlane, 3==INAVCopter. Used for flight modes
 #define STORE_GPS_LOCATION_IN_SUBTITLE_FILE                                 //comment out to disable. Stores GPS location in the goggles .srt file in place of the "uavBat:" field at a slow rate of ~2-3s per GPS coordinate
 //#define DISPLAY_THROTTLE_POSITION                                         //will display the current throttle position(0-100%) in place of the osd_roll_pids_pos element.
 //#define DISPLAY_WIND_SPEED_AND_DIRECTION                                  //Ardupilot only
@@ -66,8 +66,6 @@ MSP msp;
 
 uint32_t previousMillis_MSP = 0;
 const uint32_t next_interval_MSP = 100;
-uint8_t base_mode = 0;
-uint8_t system_status = 0;
 uint32_t custom_mode = 0;                       //flight mode
 uint8_t vbat = 0;
 float airspeed = 0;
@@ -291,29 +289,9 @@ void invert_pos(uint16_t *pos1, uint16_t *pos2)
 
 void display_flight_mode()
 {
-
-    #if VEHICLE_TYPE == 0
     char txt[15];
-    strcpy_P(txt, arduPlaneModeStr[custom_mode]);
+    strcpy_P(txt, VectorFlightModeStr[custom_mode]);
     show_text(&txt);
-
-    #elif VEHICLE_TYPE == 1
-    char txt[15];
-    strcpy_P(txt, arduCopterModeStr[custom_mode]);
-    show_text(&txt);
-
-    #elif VEHICLE_TYPE == 2
-    char txt[15];
-    strcpy_P(txt, inavPlaneModeStr[custom_mode]);
-    show_text(&txt);
-
-    #elif VEHICLE_TYPE == 3
-    char txt[15];
-    strcpy_P(txt, inavCopterModeStr[custom_mode]);
-    show_text(&txt);
-
-    #endif
-
 }
 
 void send_msp_to_airunit()
@@ -456,34 +434,6 @@ void display_wind_speed_and_direction()
     }
 }
 
-void set_flight_mode_flags()
-{
-//    if(base_mode & MAV_MODE_FLAG_SAFETY_ARMED){
-//        flightModeFlags |= ARM_ACRO_BF;
-//    }
-//    else{
-//        flightModeFlags &= ~ARM_ACRO_BF;
-//    }
-//    if(custom_mode == STABILIZE){
-//        flightModeFlags |= STAB_BF;
-//    }
-//    else{
-//        flightModeFlags &= ~STAB_BF;
-//    }
-//    if((system_status == MAV_STATE_CRITICAL || system_status == MAV_STATE_EMERGENCY)){
-//        flightModeFlags |= FS_BF;
-//    }
-//    else{
-//        flightModeFlags &= ~FS_BF;
-//    }
-//    if(custom_mode == RTL){
-//        flightModeFlags |= RESC_BF;
-//    }
-//    else{
-//        flightModeFlags &= ~RESC_BF;
-//    }
-}
-
 void set_battery_cells_number()
 {
     if(vbat < 43)batteryCellCount = 1;
@@ -516,10 +466,7 @@ void VOT_to_MSP()
      numSat = vot_telemetry.GPSTelemetry.SatsInUse;
      if(numSat >4)fix_type = 2;
      if(numSat >6)fix_type = 3;
-     
-            base_mode = vot_telemetry.PresentFlightMode;
-            system_status = 2;
-            custom_mode = 3;
+     custom_mode = vot_telemetry.PresentFlightMode;
 
       rssi = (uint16_t)map(vot_telemetry.SensorTelemetry.RSSIPercent, 0, 100, 0, 1023); //scale 0-1023
       //lq = (uint16_t)map(vot_telemetry.SensorTelemetry.LQPercent, 0, 100, 0, 1023);
@@ -535,7 +482,7 @@ void loop()
     if ((uint32_t)(currentMillis_MSP - previousMillis_MSP) >= next_interval_MSP) {
         previousMillis_MSP = currentMillis_MSP;
         GPS_calculateDistanceAndDirectionToHome();
-        set_flight_mode_flags();
+
         mAh_drawn_calc();
         blink_sats();
         send_msp_to_airunit();

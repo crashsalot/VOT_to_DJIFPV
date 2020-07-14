@@ -5,29 +5,29 @@
 
 //currently working elements
 const uint16_t osd_avg_cell_voltage_pos = 234;
-const uint16_t osd_flymode_pos = 2252;
-const uint16_t osd_pitch_angle_pos = 2284;
+const uint16_t osd_flymode_pos = 2112;
+const uint16_t osd_pitch_angle_pos = 234;
 const uint16_t osd_roll_angle_pos = 234;
 const uint16_t osd_crosshairs_pos = 234;
 
 const uint16_t osd_rssi_value_pos = 2048;
-const uint16_t osd_home_dir_pos = 2316;
-const uint16_t osd_main_batt_voltage_pos = 2070;
+const uint16_t osd_home_dir_pos = 2062;
+const uint16_t osd_home_dist_pos = 2063;
 
-const uint16_t osd_gps_lat_pos = 2484;
-const uint16_t osd_gps_lon_pos = 22482;
+const uint16_t osd_main_batt_voltage_pos = 2073;
 
-const uint16_t osd_craft_name_pos = 2052;
-const uint16_t osd_current_draw_pos = 2102;
-const uint16_t osd_mah_drawn_pos = 2134;
+const uint16_t osd_gps_lat_pos = 2419;
+const uint16_t osd_gps_lon_pos = 2451;
+
+const uint16_t osd_craft_name_pos = 2542;
+const uint16_t osd_current_draw_pos = 2103;
+const uint16_t osd_mah_drawn_pos = 2138;
 uint16_t osd_gps_sats_pos = 2080;
 
 
-const uint16_t osd_numerical_vario_pos = 2380;
-const uint16_t osd_gps_speed_pos = 2274;
-const uint16_t osd_altitude_pos = 2294;
-const uint16_t osd_home_dist_pos = 2125;
-
+const uint16_t osd_gps_speed_pos = 2272;
+const uint16_t osd_altitude_pos = 2297;
+const uint16_t osd_numerical_vario_pos = 2331;
 
 //not implemented or not available
 const uint16_t osd_throttle_pos_pos = 234;
