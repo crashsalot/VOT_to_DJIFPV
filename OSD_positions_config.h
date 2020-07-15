@@ -5,7 +5,7 @@
 
 //currently working elements
 const uint16_t osd_avg_cell_voltage_pos = 234;
-const uint16_t osd_flymode_pos = 2112;
+const uint16_t osd_flymode_pos = 234;
 const uint16_t osd_pitch_angle_pos = 234;
 const uint16_t osd_roll_angle_pos = 234;
 const uint16_t osd_crosshairs_pos = 234;

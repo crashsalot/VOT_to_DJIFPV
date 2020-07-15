@@ -47,7 +47,6 @@
 //#define DISPLAY_THROTTLE_POSITION                                         //will display the current throttle position(0-100%) in place of the osd_roll_pids_pos element.
 //#define DISPLAY_WIND_SPEED_AND_DIRECTION                                  //Ardupilot only
 
-//#include <GCS_MAVLink.h>
 #include <MSP.h>
 #include "MSP_OSD.h"
 #include "flt_modes.h"
@@ -448,7 +447,7 @@ void VOT_to_MSP()
 {
      vbat = (uint8_t)(vot_telemetry.SensorTelemetry.PackVoltageX100/10);
      battery_remaining = (uint8_t)(vot_telemetry.SensorTelemetry.mAHConsumed);
-     amperage = (uint8_t)(vot_telemetry.SensorTelemetry.PackCurrentX10/10);
+     amperage = (uint8_t)(vot_telemetry.SensorTelemetry.PackCurrentX10)*10;
      
      airspeed = vot_telemetry.SensorTelemetry.AirspeedKPHX10;                    //float
      groundspeed = vot_telemetry.GPSTelemetry.GroundspeedKPHX10;              //float
