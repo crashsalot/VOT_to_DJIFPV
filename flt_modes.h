@@ -1,4 +1,5 @@
-const char VectorFlightModeStr[16][15] PROGMEM =  {"2D",
+const char VectorFlightModeStr[16][15] PROGMEM =  {
+                                                   "2D","WAYPOINT",
                                                    "2D_ALT_HOLD",
                                                    "2D_HEADING_HOLD",
                                                    "LOITER",
@@ -12,7 +13,6 @@ const char VectorFlightModeStr[16][15] PROGMEM =  {"2D",
                                                    "POLAR_LOITER",
                                                    "CENTER_STICK",
                                                    "MANUAL",
-                                                   "WAYPOINT",
                                                    "MAX"};
 
 const typedef enum {

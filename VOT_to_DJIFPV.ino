@@ -38,15 +38,13 @@
 
 
 
-#define SERIAL_TYPE                                                 0       //0==SoftSerial(Arduino_Nano), 1==HardSerial(others)
-#define MAH_CALIBRATION_FACTOR                                      1.0f    //used to calibrate mAh reading.
-#define SPEED_IN_KILOMETERS_PER_HOUR                                        //if commented out defaults to m/s
-#define IMPERIAL_UNITS                                                    //Altitude in feet, distance to home in miles.
-//#define VEHICLE_TYPE                                                0       //0==ArduPlane, 1==ArduCopter, 2==INAVPlane, 3==INAVCopter. Used for flight modes
-#define STORE_GPS_LOCATION_IN_SUBTITLE_FILE                                 //comment out to disable. Stores GPS location in the goggles .srt file in place of the "uavBat:" field at a slow rate of ~2-3s per GPS coordinate
-//#define DISPLAY_THROTTLE_POSITION                                         //will display the current throttle position(0-100%) in place of the osd_roll_pids_pos element.
-//#define DISPLAY_WIND_SPEED_AND_DIRECTION                                  //Ardupilot only
-
+#define SERIAL_TYPE                          0       //0==SoftSerial(Arduino_Nano), 1==HardSerial(others)
+#define MAH_CALIBRATION_FACTOR               1.0f    //used to calibrate mAh reading.
+#define SPEED_IN_KILOMETERS_PER_HOUR                 //if commented out defaults to m/s
+#define IMPERIAL_UNITS                               //Altitude in feet, distance to home in miles.
+//#define VEHICLE_TYPE                       0       //0==ArduPlane, 1==ArduCopter, 2==INAVPlane, 3==INAVCopter. Used for flight modes
+#define STORE_GPS_LOCATION_IN_SUBTITLE_FILE          //comment out to disable. Stores GPS location in the goggles .srt file in place of the "uavBat:" field at a slow rate of ~2-3s per GPS coordinate
+//#define DISPLAY_THROTTLE_POSITION                  //will display the current throttle position(0-100%) in place of the osd_roll_pids_pos element.
 #include <MSP.h>
 #include "MSP_OSD.h"
 #include "flt_modes.h"
@@ -73,7 +71,7 @@ int32_t relative_alt = 0;       // in milimeters
 uint32_t altitude_msp = 0;      // EstimatedAltitudeCm
 uint16_t rssi = 0;
 uint8_t battery_remaining = 0;
-uint32_t flightModeFlags = 0;
+uint32_t flightModeFlags = 1;
 char craftname[15] = "DJIAIRUNIT";
 int16_t amperage = 0;
 uint16_t mAhDrawn = 0;
@@ -346,8 +344,8 @@ void send_msp_to_airunit()
     raw_gps.lat = gps_lat;
     raw_gps.lon = gps_lon;
     raw_gps.numSat = numSat;
-    raw_gps.alt = relative_alt / 10;
-    raw_gps.groundSpeed = (int16_t)(groundspeed * 100);
+    raw_gps.alt = relative_alt;
+    raw_gps.groundSpeed = (int16_t)(groundspeed);
     msp.send(MSP_RAW_GPS, &raw_gps, sizeof(raw_gps));
 
     //MSP_COMP_GPS
@@ -361,15 +359,10 @@ void send_msp_to_airunit()
     msp.send(MSP_ATTITUDE, &attitude, sizeof(attitude));
 
     //MSP_ALTITUDE
-    altitude.estimatedActualPosition = relative_alt / 10; //cm
+    altitude.estimatedActualPosition = relative_alt; 
     altitude.estimatedActualVelocity = (int16_t)(climb_rate * 100); //m/s to cm/s    
     msp.send(MSP_ALTITUDE, &altitude, sizeof(altitude));
 
-#ifdef DISPLAY_THROTTLE_POSITION
-    //MSP_PID_CONFIG
-    pid.roll[0] = thr_position;
-    msp.send(MSP_PID, &pid, sizeof(pid));
-#endif
 
     //MSP_OSD_CONFIG
     send_osd_config();
@@ -398,40 +391,6 @@ void show_text(char (*text)[15])
     memcpy(craftname, *text, sizeof(craftname));
 }
 
-void display_wind_speed_and_direction()
-{
-    relative_wind_direction = (360 + (wind_direction - heading));
-    if(relative_wind_direction < 0)relative_wind_direction += 360;
-    if(relative_wind_direction > 360)relative_wind_direction -= 360;
-
-    String dir = "";
-
-    if(relative_wind_direction <= 22.5)dir = "↓";
-    else if(relative_wind_direction <= 67.5)dir = "↙";
-    else if(relative_wind_direction <= 112.5)dir = "←";
-    else if(relative_wind_direction <= 157.5)dir = "↖";
-    else if(relative_wind_direction <= 202.5)dir = "↑";
-    else if(relative_wind_direction <= 247.5)dir = "↗";
-    else if(relative_wind_direction <= 292.5)dir = "→";
-    else if(relative_wind_direction <= 337.5)dir = "↘";
-    else if(relative_wind_direction <= 360)dir = "↓";
-
-    if((general_counter % 4000 == 0))
-    {
-      String w = "";
-      #ifdef IMPERIAL_UNITS
-          w = w + dir + " " + (wind_speed * 2.2369) + " mph";
-      #elif defined(SPEED_IN_KILOMETERS_PER_HOUR)
-          w = w + dir + " " + (wind_speed * 3.6) + " km/h";
-      #else
-          w = w + dir + " " + wind_speed + " m/s";
-      #endif
-      
-      char wind[15] = {0};
-      w.toCharArray(wind, 15);
-      show_text(&wind);
-    }
-}
 
 void set_battery_cells_number()
 {
@@ -506,7 +465,5 @@ void loop()
       set_home = 0;
     }
     
-#ifdef DISPLAY_WIND_SPEED_AND_DIRECTION
-        display_wind_speed_and_direction();
-#endif            
+            
 }
