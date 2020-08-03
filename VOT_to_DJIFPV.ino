@@ -76,7 +76,7 @@ int32_t relative_alt = 0;       // in milimeters
 uint32_t altitude_msp = 0;      // EstimatedAltitudeCm
 uint16_t rssi = 0;
 uint8_t battery_remaining = 0;
-uint32_t flightModeFlags = 1;
+uint32_t flightModeFlags = 0;
 char craftname[15] = "DJIAIRUNIT";
 int16_t amperage = 0;
 uint16_t mAhDrawn = 0;
@@ -454,8 +454,9 @@ void VOT_to_MSP()
      gps_lon = vot_telemetry.GPSTelemetry.LongitudeX1E7;
      gps_alt = vot_telemetry.GPSTelemetry.GPSAltitudecm;
      numSat = vot_telemetry.GPSTelemetry.SatsInUse;
-     if(numSat >4)fix_type = 2;
-     if(numSat >6)fix_type = 3;
+     if (gps_lon == 0) numSat = 0;
+     if(numSat >3)fix_type = 2;
+     if(numSat >5)fix_type = 3;
      custom_mode = vot_telemetry.PresentFlightMode;
 
       rssi = (uint16_t)map(vot_telemetry.SensorTelemetry.RSSIPercent, 0, 100, 0, 1023); //scale 0-1023
