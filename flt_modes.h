@@ -1,10 +1,10 @@
 const char VectorFlightModeStr[16][15] PROGMEM =  {
                                                    "2D","WAYPOINT",
                                                    "2D_ALT_HOLD",
-                                                   "2D_HEADING_HOLD",
+                                                   "2D_HH",
                                                    "LOITER",
                                                    "3D",
-                                                   "3D_HEADING_HOLD",
+                                                   "3D_HH",
                                                    "RTH",
                                                    "LAND",
                                                    "CARTESIAN",
@@ -15,6 +15,10 @@ const char VectorFlightModeStr[16][15] PROGMEM =  {
                                                    "MANUAL",
                                                    "MAX"};
 
+const typedef enum{
+        STABILIZE       = 2,
+        RTL             = 11
+}arduPlaneModes_e;
 const typedef enum {
         ARM_ACRO_BF = (1 << 0),
         STAB_BF     = (1 << 1),

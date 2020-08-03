@@ -276,7 +276,7 @@ void vot_print_telemetry_data(void) {
 
 	/* --------------------------------------- */
 
-	VOT_TELEM_PRINT(SensorTelemetry.BaroAltitudecm, DEC);
+/*	VOT_TELEM_PRINT(SensorTelemetry.BaroAltitudecm, DEC);
 	VOT_TELEM_PRINT(SensorTelemetry.AirspeedKPHX10, DEC);
 	VOT_TELEM_PRINT(SensorTelemetry.ClimbRateMSX100, DEC);
 	VOT_TELEM_PRINT(SensorTelemetry.RPM, DEC);
@@ -293,10 +293,10 @@ void vot_print_telemetry_data(void) {
 	VOT_TELEM_PRINT(SensorTelemetry.VideoTxVoltageX100, DEC);
 	VOT_TELEM_PRINT(SensorTelemetry.CameraVoltageX100, DEC);
 	VOT_TELEM_PRINT(SensorTelemetry.RxVoltageX100, DEC);
-	VOT_TELEM_PRINT(SensorTelemetry.PackCurrentX10, DEC);
-	VOT_TELEM_PRINT(SensorTelemetry.TempDegreesCX10, DEC);
+*/	VOT_TELEM_PRINT(SensorTelemetry.PackCurrentX10, DEC);
+//	VOT_TELEM_PRINT(SensorTelemetry.TempDegreesCX10, DEC);
 	VOT_TELEM_PRINT(SensorTelemetry.mAHConsumed, DEC);
-	VOT_TELEM_PRINT(SensorTelemetry.CompassDegrees, DEC);
+/*	VOT_TELEM_PRINT(SensorTelemetry.CompassDegrees, DEC);
 	VOT_TELEM_PRINT(SensorTelemetry.RSSIPercent, DEC);
 	VOT_TELEM_PRINT(SensorTelemetry.LQPercent, DEC);
 
@@ -308,7 +308,7 @@ void vot_print_telemetry_data(void) {
 	VOT_TELEM_PRINT(GPSTelemetry.GPSAltitudecm, DEC);
 	VOT_TELEM_PRINT(GPSTelemetry.HDOPx10, DEC);
 	VOT_TELEM_PRINT(GPSTelemetry.SatsInUse, DEC);
-
+*/
 	/* --------------------------------------- */
 
 	Serial.print(F("PresentFlightMode: "));

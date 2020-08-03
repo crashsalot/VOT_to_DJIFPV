@@ -43,12 +43,15 @@
 #define SPEED_IN_KILOMETERS_PER_HOUR                 //if commented out defaults to m/s
 #define IMPERIAL_UNITS                               //Altitude in feet, distance to home in miles.
 //#define VEHICLE_TYPE                       0       //0==ArduPlane, 1==ArduCopter, 2==INAVPlane, 3==INAVCopter. Used for flight modes
-#define STORE_GPS_LOCATION_IN_SUBTITLE_FILE          //comment out to disable. Stores GPS location in the goggles .srt file in place of the "uavBat:" field at a slow rate of ~2-3s per GPS coordinate
+//#define STORE_GPS_LOCATION_IN_SUBTITLE_FILE          //comment out to disable. Stores GPS location in the goggles .srt file in place of the "uavBat:" field at a slow rate of ~2-3s per GPS coordinate
 //#define DISPLAY_THROTTLE_POSITION                  //will display the current throttle position(0-100%) in place of the osd_roll_pids_pos element.
+
+#include <GCS_MAVLink.h>
 #include <MSP.h>
 #include "MSP_OSD.h"
 #include "flt_modes.h"
 #include "OSD_positions_config.h"
+
 
 #if SERIAL_TYPE == 0
   #include <AltSoftSerial.h>
@@ -59,14 +62,16 @@
   HardwareSerial &mavlinkSerial = Serial3;
 #endif
 
-MSP msp;
 
+MSP msp;
+uint8_t base_mode = MAV_MODE_PREFLIGHT;
+uint8_t system_status = MAV_STATE_UNINIT;
 uint32_t previousMillis_MSP = 0;
 const uint32_t next_interval_MSP = 100;
 uint32_t custom_mode = 0;                       //flight mode
 uint8_t vbat = 0;
 float airspeed = 0;
-float groundspeed = 0;
+int16_t groundspeed = 0;
 int32_t relative_alt = 0;       // in milimeters
 uint32_t altitude_msp = 0;      // EstimatedAltitudeCm
 uint16_t rssi = 0;
@@ -104,7 +109,7 @@ float mAh_calib_factor = MAH_CALIBRATION_FACTOR;
 float mAh_calib_factor = 1;
 #endif
 uint8_t set_home = 1;
-uint32_t general_counter = 0;
+uint32_t general_counter = next_interval_MSP;
 uint16_t blink_sats_orig_pos = osd_gps_sats_pos;
 uint16_t blink_sats_blank_pos = 234;
 uint32_t previousFlightMode = custom_mode;
@@ -113,11 +118,11 @@ uint8_t thr_position = 0;
 float wind_direction = 0;   // wind direction (degrees)
 float wind_speed = 0;       // wind speed in ground plane (m/s)
 float relative_wind_direction = 0;
-float climb_rate = 0.0;
+float climb_rate = 0;
 
 msp_battery_state_t battery_state = {0};
 msp_name_t name = {0};
-//msp_fc_version_t fc_version = {0};
+msp_fc_version_t fc_version = {0};
 msp_status_BF_t status_BF = {0};
 msp_analog_t analog = {0};
 msp_raw_gps_t raw_gps = {0};
@@ -283,7 +288,33 @@ void invert_pos(uint16_t *pos1, uint16_t *pos2)
     *pos1 = *pos2;
     *pos2 = tmp_pos;
 }
-
+void set_flight_mode_flags()
+{
+    if(base_mode & MAV_MODE_FLAG_SAFETY_ARMED){
+        flightModeFlags |= ARM_ACRO_BF;
+    }
+    else{
+        flightModeFlags &= ~ARM_ACRO_BF;
+    }
+    if(custom_mode == STABILIZE){
+        flightModeFlags |= STAB_BF;
+    }
+    else{
+        flightModeFlags &= ~STAB_BF;
+    }
+    if((system_status == MAV_STATE_CRITICAL || system_status == MAV_STATE_EMERGENCY)){
+        flightModeFlags |= FS_BF;
+    }
+    else{
+        flightModeFlags &= ~FS_BF;
+    }
+    if(custom_mode == RTL){
+        flightModeFlags |= RESC_BF;
+    }
+    else{
+        flightModeFlags &= ~RESC_BF;
+    }
+}
 void display_flight_mode()
 {
     char txt[15];
@@ -295,12 +326,13 @@ void send_msp_to_airunit()
 {
 
     //MSP_FC_VERSION
-    // fc_version.versionMajor = 4;
-    // fc_version.versionMinor = 1;
-    // fc_version.versionPatchLevel = 1;
-    // msp.send(MSP_FC_VERSION, &fc_version, sizeof(fc_version));
+    fc_version.versionMajor = 4;
+    fc_version.versionMinor = 1;
+    fc_version.versionPatchLevel = 1;
+    msp.send(MSP_FC_VERSION, &fc_version, sizeof(fc_version));
 
     //MSP_NAME
+
     memcpy(name.craft_name, craftname, sizeof(craftname));
     msp.send(MSP_NAME, &name, sizeof(name));
 
@@ -344,8 +376,8 @@ void send_msp_to_airunit()
     raw_gps.lat = gps_lat;
     raw_gps.lon = gps_lon;
     raw_gps.numSat = numSat;
-    raw_gps.alt = relative_alt;
-    raw_gps.groundSpeed = (int16_t)(groundspeed);
+    raw_gps.alt = gps_alt;
+    raw_gps.groundSpeed = groundspeed;       //in cm/s
     msp.send(MSP_RAW_GPS, &raw_gps, sizeof(raw_gps));
 
     //MSP_COMP_GPS
@@ -354,13 +386,13 @@ void send_msp_to_airunit()
     msp.send(MSP_COMP_GPS, &comp_gps, sizeof(comp_gps));
 
     //MSP_ATTITUDE
-    attitude.pitch = pitch_angle;
-    attitude.roll = roll_angle;
+    attitude.pitch = pitch_angle*10;
+    attitude.roll = roll_angle*10;
     msp.send(MSP_ATTITUDE, &attitude, sizeof(attitude));
 
     //MSP_ALTITUDE
     altitude.estimatedActualPosition = relative_alt; 
-    altitude.estimatedActualVelocity = (int16_t)(climb_rate * 100); //m/s to cm/s    
+    altitude.estimatedActualVelocity = (int16_t)(climb_rate); //m/s to cm/s    
     msp.send(MSP_ALTITUDE, &altitude, sizeof(altitude));
 
 
@@ -406,17 +438,17 @@ void VOT_to_MSP()
 {
      vbat = (uint8_t)(vot_telemetry.SensorTelemetry.PackVoltageX100/10);
      battery_remaining = (uint8_t)(vot_telemetry.SensorTelemetry.mAHConsumed);
-     amperage = (uint8_t)(vot_telemetry.SensorTelemetry.PackCurrentX10)*10;
-     
-     airspeed = vot_telemetry.SensorTelemetry.AirspeedKPHX10;                    //float
-     groundspeed = vot_telemetry.GPSTelemetry.GroundspeedKPHX10;              //float
+     amperage = vot_telemetry.SensorTelemetry.PackCurrentX10*10;
+     mAhDrawn = vot_telemetry.SensorTelemetry.mAHConsumed;
+     airspeed = vot_telemetry.SensorTelemetry.AirspeedKPHX10*2.778;                    //float
+     groundspeed = vot_telemetry.GPSTelemetry.GroundspeedKPHX10*2.778;        // in cm/s
      heading = vot_telemetry.SensorTelemetry.CompassDegrees;
      pitch_angle = vot_telemetry.SensorTelemetry.Attitude.PitchDegrees;
      roll_angle = vot_telemetry.SensorTelemetry.Attitude.RollDegrees;
      wind_direction = vot_telemetry.SensorTelemetry.Attitude.YawDegrees;
 
-     climb_rate = vot_telemetry.SensorTelemetry.ClimbRateMSX100;                     //float m/s
-     relative_alt = vot_telemetry.SensorTelemetry.BaroAltitudecm;
+     climb_rate = vot_telemetry.SensorTelemetry.ClimbRateMSX100 / 100;                     //float m/s
+     relative_alt = vot_telemetry.SensorTelemetry.BaroAltitudecm *10;
      //rpm = vot_telemetry.SensorTelemetry.RPM;
      gps_lat = vot_telemetry.GPSTelemetry.LatitudeX1E7;
      gps_lon = vot_telemetry.GPSTelemetry.LongitudeX1E7;
@@ -434,14 +466,16 @@ void VOT_to_MSP()
 
 void loop()
 {
+    //receive mavlink data
+//    mavl_receive();
     vot_handler_task();
     VOT_to_MSP();
     uint32_t currentMillis_MSP = millis();
     if ((uint32_t)(currentMillis_MSP - previousMillis_MSP) >= next_interval_MSP) {
         previousMillis_MSP = currentMillis_MSP;
         GPS_calculateDistanceAndDirectionToHome();
-
-        mAh_drawn_calc();
+        set_flight_mode_flags();
+        //mAh_drawn_calc();
         blink_sats();
         send_msp_to_airunit();
         general_counter += next_interval_MSP;
@@ -454,7 +488,7 @@ void loop()
     if(batteryCellCount == 0 && vbat > 0)set_battery_cells_number();
 
     //display flight mode every 10s
-    if (general_counter % 10000 == 0)display_flight_mode();
+    if (general_counter % 10000 == 0) display_flight_mode();
 
     //set GPS home when 3D fix
     if(fix_type > 2 && set_home == 1 && gps_lat != 0 && gps_lon != 0 && numSat > 5){
