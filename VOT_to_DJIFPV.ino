@@ -454,7 +454,7 @@ void VOT_to_MSP()
      gps_lon = vot_telemetry.GPSTelemetry.LongitudeX1E7;
      gps_alt = vot_telemetry.GPSTelemetry.GPSAltitudecm;
      numSat = vot_telemetry.GPSTelemetry.SatsInUse;
-     if (gps_lon == 0) numSat = 0;
+     if (gps_lon == 0) numSat = 1;
      if(numSat >3)fix_type = 2;
      if(numSat >5)fix_type = 3;
      custom_mode = vot_telemetry.PresentFlightMode;
