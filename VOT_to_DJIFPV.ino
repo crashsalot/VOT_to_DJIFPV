@@ -46,7 +46,7 @@
 //#define STORE_GPS_LOCATION_IN_SUBTITLE_FILE          //comment out to disable. Stores GPS location in the goggles .srt file in place of the "uavBat:" field at a slow rate of ~2-3s per GPS coordinate
 //#define DISPLAY_THROTTLE_POSITION                  //will display the current throttle position(0-100%) in place of the osd_roll_pids_pos element.
 
-#include <GCS_MAVLink.h>
+//#include <GCS_MAVLink.h>
 #include <MSP.h>
 #include "MSP_OSD.h"
 #include "flt_modes.h"
@@ -64,8 +64,8 @@
 
 
 MSP msp;
-uint8_t base_mode = MAV_MODE_PREFLIGHT;
-uint8_t system_status = MAV_STATE_UNINIT;
+//uint8_t base_mode = MAV_MODE_PREFLIGHT;
+//uint8_t system_status = MAV_STATE_UNINIT;
 uint32_t previousMillis_MSP = 0;
 const uint32_t next_interval_MSP = 100;
 uint32_t custom_mode = 0;                       //flight mode
@@ -289,8 +289,8 @@ void invert_pos(uint16_t *pos1, uint16_t *pos2)
     *pos2 = tmp_pos;
 }
 void set_flight_mode_flags()
-{
-    if(base_mode & MAV_MODE_FLAG_SAFETY_ARMED){
+{ flightModeFlags = 0;
+   /* if(base_mode & MAV_MODE_FLAG_SAFETY_ARMED){
         flightModeFlags |= ARM_ACRO_BF;
     }
     else{
@@ -313,7 +313,7 @@ void set_flight_mode_flags()
     }
     else{
         flightModeFlags &= ~RESC_BF;
-    }
+    }*/
 }
 void display_flight_mode()
 {
