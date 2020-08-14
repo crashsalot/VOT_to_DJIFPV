@@ -1,4 +1,8 @@
- Vector Open Telemetry to DJI FPV System bridge:
+DEvelopment stopped; use https://github.com/crashsalot/VOT_DJIFPVplusBST instead
+
+
+
+Vector Open Telemetry to DJI FPV System bridge:
  This is an Arduino project that handles converting
  Eagletree Vector Open Telemetry serial data (57600 Baud) to DJI FPV System.
 
